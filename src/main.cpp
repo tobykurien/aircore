@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+// Code adapted from https://forum.arduino.cc/index.php?topic=22480.0
+
 //the mathematical constant pi, because we are using radians instead of degrees.
 // 360 degrees = 2*pi, 180 = pi, 90 = pi/2, etc.
 const float pi = 3.14159;
@@ -13,8 +15,8 @@ const int maxAnalogRes = 255;
 * each coil, and two more pins to reverse the polarity in that coil. So a total
 * of 6 pins (3 per coil).
 */
-const int sinPin = 9;     // connect to ENA
-const int cosPin = 10;    // connect to ENB
+const int sinPin = 9;     // ENA
+const int cosPin = 10;    // ENB
 const int sinDirPin1 = 2; // IN1
 const int sinDirPin2 = 4; // IN2
 const int cosDirPin1 = 7; // IN3
