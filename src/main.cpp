@@ -13,12 +13,17 @@ const int maxAnalogRes = 255;
 * each coil, and two more pins to reverse the polarity in that coil. So a total
 * of 6 pins (3 per coil).
 */
-const int aircore1SinPin = 9;     //this controls the voltage to the "sine" coil
-const int aircore1CosPin = 10;    //this controls the voltage to the "cosine" coil
-const int aircore1SinDirPin1 = 2; //these two control the polarity to the "sine" coil
-const int aircore1SinDirPin2 = 4;
-const int aircore1CosDirPin1 = 7; //these two control the polarity to the "cosine" coil
-const int aircore1CosDirPin2 = 8;
+const int sinPin = 9;     // connect to ENA
+const int cosPin = 10;    // connect to ENB
+const int sinDirPin1 = 2; // IN1
+const int sinDirPin2 = 4; // IN2
+const int cosDirPin1 = 7; // IN3
+const int cosDirPin2 = 8; // IN4
+
+// SIN+ -> OUT1
+// SIN- -> OUT2
+// COS+ -> OUT3
+// COS- -> OUT4
 
 const int tachoPin = 3;
 int millisPer1000rpm = 60;
@@ -28,7 +33,7 @@ unsigned long tachoTime = 0;
 int delayTime = 40;
 
 // setMeterPosition() - put it at the angle in radians
-void setMeterPosition(int sinPin, int sinDirPin1, int sinDirPin2, int cosPin, int cosDirPin1, int cosDirPin2, float pos)
+void setMeterPosition(float pos)
 {
 
     // Calculate the voltage on the PWM pins based on the angle we want
@@ -65,31 +70,45 @@ void setMeterPosition(int sinPin, int sinDirPin1, int sinDirPin2, int cosPin, in
     analogWrite(cosPin, cosCoilValue);
 }
 
-void setup()
-{
-    //Set the pins to OUTPUT
-    pinMode(aircore1SinPin, OUTPUT);
-    pinMode(aircore1CosPin, OUTPUT);
-    pinMode(aircore1SinDirPin1, OUTPUT);
-    pinMode(aircore1SinDirPin2, OUTPUT);
-    pinMode(aircore1CosDirPin1, OUTPUT);
-    pinMode(aircore1CosDirPin2, OUTPUT);
-
-    // Set the initial direction as "forward". Of course it could be "reverse" depending on which lead you connected :-).
-    digitalWrite(aircore1SinDirPin1, HIGH);
-    digitalWrite(aircore1SinDirPin2, LOW);
-    digitalWrite(aircore1CosDirPin1, HIGH);
-    digitalWrite(aircore1CosDirPin2, LOW);
-
-    attachInterrupt(digitalPinToInterrupt(tachoPin), tachoInterrupt, RISING);
+void tachoInterrupt() {
+    if (tachoTime > 0) {
+        int timeElapsed = millis() - tachoTime;
+        tachoTime = millis();
+        if (timeElapsed > 200) timeElapsed = 200;
+        float pos = map(timeElapsed, 200, 10, 0, pi*1250) / 2500;
+        setMeterPosition(pos);
+    } else {
+        tachoTime = millis();
+    }
 }
 
-void tachoInterrupt() {
+void setup()
+{
+    Serial.begin(9600);
 
+    //Set the pins to OUTPUT
+    pinMode(sinPin, OUTPUT);
+    pinMode(cosPin, OUTPUT);
+    pinMode(sinDirPin1, OUTPUT);
+    pinMode(sinDirPin2, OUTPUT);
+    pinMode(cosDirPin1, OUTPUT);
+    pinMode(cosDirPin2, OUTPUT);
+
+    // Set the initial direction as "forward". Of course it could be "reverse" depending on which lead you connected :-).
+    digitalWrite(sinDirPin1, HIGH);
+    digitalWrite(sinDirPin2, LOW);
+    digitalWrite(cosDirPin1, HIGH);
+    digitalWrite(cosDirPin2, LOW);
+
+    setMeterPosition(0);
+    attachInterrupt(digitalPinToInterrupt(tachoPin), tachoInterrupt, RISING);
 }
 
 void loop() // run over and over again
 {
+    if (millis() - tachoTime > 500) {
+        setMeterPosition(0);
+    }
 
     // //Rotate 0 through 360 degrees (OK, really 2*pi radians, but who cares?)
     // for (float i = 0; i < (2 * pi); i = i + stepSize)
