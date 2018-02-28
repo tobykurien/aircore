@@ -77,7 +77,7 @@ void tachoInterrupt() {
         int timeElapsed = millis() - tachoTime;
         tachoTime = millis();
         if (timeElapsed > 200) timeElapsed = 200;
-        float pos = map(timeElapsed, 200, 10, 0, pi*1250) / 2500;
+        float pos = map(timeElapsed, 200, 10, 0, 2*pi) / 1000;
         setMeterPosition(pos);
     } else {
         tachoTime = millis();
