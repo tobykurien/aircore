@@ -30,6 +30,7 @@ const int cosDirPin2 = 8; // IN4
 const int tachoPin = 3;
 int millisPer1000rpm = 60;
 unsigned long tachoTime = 0;
+unsigned long timeElapsed = 0;
 
 // milliseconds between each angular step.
 int delayTime = 40;
@@ -74,11 +75,10 @@ void setMeterPosition(float pos)
 
 void tachoInterrupt() {
     if (tachoTime > 0) {
-        int timeElapsed = millis() - tachoTime;
+        timeElapsed = millis() - tachoTime;
         tachoTime = millis();
         if (timeElapsed > 200) timeElapsed = 200;
-        float pos = map(timeElapsed, 200, 10, 0, 2*pi) / 1000;
-        setMeterPosition(pos);
+        if (timeElapsed < 0) timeElapsed = 0;
     } else {
         tachoTime = millis();
     }
@@ -108,21 +108,29 @@ void setup()
 
 void loop() // run over and over again
 {
-    if (millis() - tachoTime > 500) {
-        setMeterPosition(0);
+    if (timeElapsed > 0) {
+        float pos = map(timeElapsed, 200, 8.57, 0, pi/5*7);
+        setMeterPosition(pos);
+        Serial.print(timeElapsed, DEC);
+        Serial.print(" ");
+        Serial.println(pos, DEC);
+    } else {
+        //setMeterPosition(0);
     }
+
+    delay(40);
 
     // //Rotate 0 through 360 degrees (OK, really 2*pi radians, but who cares?)
     // for (float i = 0; i < (2 * pi); i = i + stepSize)
     // {
-    //     setMeterPosition(aircore1SinPin, aircore1SinDirPin1, aircore1SinDirPin2, aircore1CosPin, aircore1CosDirPin1, aircore1CosDirPin2, i);
+    //     setMeterPosition(i);
     //     delay(delayTime); // waits for delayTime milliseconds
     // }
 
     // //Rotate 360 through 0 degrees
     // for (float i = (2 * pi); i > 0; i = i - stepSize)
     // {
-    //     setMeterPosition(aircore1SinPin, aircore1SinDirPin1, aircore1SinDirPin2, aircore1CosPin, aircore1CosDirPin1, aircore1CosDirPin2, i);
+    //     setMeterPosition(i);
     //     delay(delayTime); // waits for delayTime milliseconds
     // }
 }
